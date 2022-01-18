@@ -36,6 +36,7 @@ function getSkuFromProductItem(item) {
 function cartItemClickListener(event) {
   const sku = getSkuFromProductItem(event.path[1]);
   const cardItem = list.find((x) => x.id === sku);
+  const items = document.getElementsByClassName('cart__items');
   createCartItemElement({ sku: cardItem.id, name: cardItem.title, salePrice: cardItem.price });
 }
 
