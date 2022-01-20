@@ -1,3 +1,5 @@
+let list = [];
+
 function createProductImageElement(imageSource) {
   const img = document.createElement('img');
   img.className = 'item__image';
@@ -5,23 +7,31 @@ function createProductImageElement(imageSource) {
   return img;
 }
 
-function createCustomElement(element, className, innerText) {
-  const e = document.createElement(element);
-  e.className = className;
-  e.innerText = innerText;
-  return e;
+function teste() {
+  document.getElementsByClassName('empty-cart')[0].addEventListener(
+    'click', () => {
+      if (
+        document.getElementsByClassName('cart__items')[0].childNodes.length > 0
+      ) {
+        document
+          .getElementsByClassName('cart__items')[0]
+          .removeChild(
+            document.getElementsByClassName('cart__items')[0].childNodes[
+              document.getElementsByClassName('cart__items')[0].childNodes
+                .length - 1
+            ],
+          );
+        }
+    },
+    false,
+  );
 }
-
-function createProductItemElement({ sku, name, image }) {
-  const section = document.createElement('section');
-  section.className = 'item';
-
-  section.appendChild(createCustomElement('span', 'item__sku', sku));
-  section.appendChild(createCustomElement('span', 'item__title', name));
-  section.appendChild(createProductImageElement(image));
-  section.appendChild(createCustomElement('button', 'item__add', 'Adicionar ao carrinho!'));
-
-  return section;
+function createCartItemElement({ sku, name, salePrice }) {
+  const li = document.createElement('li');
+  li.className = 'cart__item';
+  li.innerText = `SKU: ${sku} | NAME: ${name} | PRICE: $${salePrice}`;
+  li.addEventListener('click', teste);
+  return li;
 }
 
 function getSkuFromProductItem(item) {
@@ -29,15 +39,52 @@ function getSkuFromProductItem(item) {
 }
 
 function cartItemClickListener(event) {
-  // coloque seu código aqui
+  const sku = getSkuFromProductItem(event.path[1]);
+  const cardItem = list.find((x) => x.id === sku);
+  const items = document.getElementsByClassName('cart__items');
+  items[0].appendChild(
+    createCartItemElement({
+      sku: cardItem.id,
+      name: cardItem.title,
+      salePrice: cardItem.price,
+    }),
+  );
 }
 
-function createCartItemElement({ sku, name, salePrice }) {
-  const li = document.createElement('li');
-  li.className = 'cart__item';
-  li.innerText = `SKU: ${sku} | NAME: ${name} | PRICE: $${salePrice}`;
-  li.addEventListener('click', cartItemClickListener);
-  return li;
+function createCustomElement(element, className, innerText) {
+  const e = document.createElement(element);
+  e.className = className;
+  e.innerText = innerText;
+  e.addEventListener('click', cartItemClickListener);
+  return e;
 }
+function createProductItemElement({ sku, name, image }) {
+  const section = document.createElement('section');
+  section.className = 'item';
 
-window.onload = () => { };
+  section.appendChild(createCustomElement('span', 'item__sku', sku));
+  section.appendChild(createCustomElement('span', 'item__title', name));
+  section.appendChild(createProductImageElement(image));
+  section.appendChild(
+    createCustomElement('button', 'item__add', 'Adicionar ao carrinho!'),
+  );
+  return section;
+}
+window.onload = () => {
+  fetch('https://api.mercadolibre.com/sites/MLB/search?q=$QUERY')
+    .then((resposta) => resposta.json())
+    .then((json) => {
+      list = json.results;
+      const items = document.getElementsByClassName('items');
+      json.results.forEach((produto) => {
+        items[0].appendChild(
+          createProductItemElement({
+            sku: produto.id,
+            name: produto.title,
+            image: produto.thumbnail,
+          }),
+        );
+        return json;
+      });
+    });
+};
